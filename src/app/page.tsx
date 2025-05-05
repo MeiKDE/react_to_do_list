@@ -1,15 +1,31 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface Todo {
   id: number;
   text: string;
   selected: boolean;
+  completed: boolean;
 }
 
 export default function Home() {
   const [todos, setToDos] = useState<Todo[]>([]);
   const [input, setInput] = useState<string>("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editInput, setEditInput] = useState("");
+
+  //When the page loads, check if there’s a saved to-do list in the browser. If yes, load it and use it to show the to-dos.
+  useEffect(() => {
+    const stored = localStorage.getItem("todos");
+    if (stored) {
+      setToDos(JSON.parse(stored));
+    }
+  }, []);
+
+  //This watches the todos state, and anytime it changes, it saves it to local storage.
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
   // create a new object and append onto the todos array
   const addTodo = () => {
@@ -30,7 +46,7 @@ export default function Home() {
     setToDos(todos.filter((todo) => todo.id !== id));
   };
 
-  //update the data by setting selected boolean from 'true' to 'false'
+  //locate data and then update it by setting selected boolean from 'false' to 'true'
   const selectTodo = (id: number) => {
     setToDos(
       todos.map((todo) =>
@@ -76,9 +92,54 @@ export default function Home() {
                 onClick={() => selectTodo(todo.id)}
                 className="flex items-center justify-between rounded-md bg-gray-50 p-3 transition-colors duration-200 hover:bg-gray-100"
               >
-                <span className="text-gray-700">{todo.text}</span>
+                {editingId === todo.id ? (
+                  <input
+                    type="text"
+                    value={editInput}
+                    onChange={(e) => setEditInput(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-grow mr-2 border rounded px-2 py-1"
+                  />
+                ) : (
+                  <span className="text-gray-700">{todo.text}</span>
+                )}
+
+                {editingId === todo.id ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const updated = todos.map((t) =>
+                        t.id === todo.id
+                          ? {
+                              ...t,
+                              text: editInput,
+                            }
+                          : t
+                      );
+                      setToDos(updated);
+                      setEditingId(null);
+                    }}
+                    className="text-blue-500 hover:text-blue-700 mr-2"
+                  >
+                    Save
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(todo.id);
+                      setEditInput(todo.text);
+                    }}
+                  >
+                    Edit
+                  </button>
+                )}
+
                 <button
-                  onClick={() => deleteTodo(todo.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTodo(todo.id);
+                  }}
                   className="rounded-md px-3 py-1 text-red-500 transition-colors duration-200 hover:bg-red-50 hover:text-red-700"
                 >
                   Delete
