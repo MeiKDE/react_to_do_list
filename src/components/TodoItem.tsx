@@ -1,32 +1,34 @@
 import React, { useState } from "react";
+import { Todo } from "@/types/index";
 
-// Define a type for a single to-do item
-interface Todo {
-  id: number;
-  text: string;
-  selected: boolean;
-  completed: boolean;
+interface TodoItemProps {
+  todo: Todo;
+  onSelectTodo: (id: number) => void;
+  onDeleteTodo: (id: number) => void;
+  onCompleteTodo: (id: number) => void;
+  onEditTodo: (id: number, newText: string) => void;
 }
 
-export const TodoItem = ({
+export default function TodoItem({
   todo,
-  onToggleSelect,
-  onDelete,
-  onToggleComplete,
-  onEdit,
-}: {
-  todo: Todo;
-  onToggleSelect: (id: number) => void;
-  onDelete: (id: number) => void;
-  onToggleComplete: (id: number) => void;
-  onEdit: (id: number, newText: string) => void;
-}) => {
+  onSelectTodo,
+  onDeleteTodo,
+  onCompleteTodo,
+  onEditTodo,
+}: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(todo.text);
+  const [editedText, setEditedText] = useState(todo.text);
 
-  const handleSave = () => {
-    onEdit(todo.id, editText);
-    setIsEditing(false);
+  // If we were editing, we switch to view mode;
+  // If we were viewing, we switch to edit mode.
+  const handleEdit = () => {
+    // edit mode
+    if (isEditing) {
+      onEditTodo(todo.id, editedText);
+    }
+
+    // view mode, set isEditing to false
+    setIsEditing(!isEditing);
   };
 
   return (
@@ -36,34 +38,37 @@ export const TodoItem = ({
           ? "bg-green-100 hover:bg-green-200"
           : "bg-gray-100 hover:bg-gray-200"
       }`}
-      onClick={() => onToggleSelect(todo.id)}
+      onClick={() => onSelectTodo(todo.id)}
     >
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={todo.completed}
-          onChange={(e) => {
-            e.stopPropagation();
-            onToggleComplete(todo.id);
-          }}
-        />
-
+      <div>
         {isEditing ? (
           <input
             type="text"
-            value={editText}
+            value={editedText}
+            // this means the input field won't actually
+            // update editedText unless more logic is added.
             onChange={(e) => {
-              setEditText(e.target.value);
-            }}
-            onClick={(e) => {
               e.stopPropagation();
+              setEditedText(e.target.value);
             }}
             className="border px-2 py-1 rounded"
           />
         ) : (
-          <span className={todo.completed ? "line-through text-gray-400" : ""}>
-            {todo.text}
-          </span>
+          <div>
+            <input
+              type="checkbox"
+              checked={todo.completed}
+              onChange={(e) => {
+                e.stopPropagation();
+                onCompleteTodo(todo.id);
+              }}
+            />
+            <span
+              className={todo.completed ? "line-through text-gray-400" : ""}
+            >
+              {todo.text}
+            </span>
+          </div>
         )}
       </div>
 
@@ -72,11 +77,11 @@ export const TodoItem = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleSave();
+              handleEdit();
             }}
-            className="text-blue-500 hover:text-blue-700"
           >
-            Save
+            {" "}
+            Save{" "}
           </button>
         ) : (
           <button
@@ -89,16 +94,18 @@ export const TodoItem = ({
             Edit
           </button>
         )}
+
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(todo.id);
+            onDeleteTodo(todo.id);
           }}
           className="text-red-500 hover:text-red-700"
         >
-          Delete
+          {" "}
+          Delete{" "}
         </button>
       </div>
     </li>
   );
-};
+}
