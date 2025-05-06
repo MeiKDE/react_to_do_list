@@ -1,69 +1,19 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import TodoItem from "@/components/TodoItem";
-import { Todo } from "@/types/index";
+import { useTodoContext } from "@/store/TodoContext";
 
 export default function App() {
-  // the task input and todo form will be changing between states
-  const [input, setInput] = useState("");
-  const [todos, setTodos] = useState<Todo[]>([]);
-
-  const addTodo = () => {
-    const newTodo: Todo = {
-      id: Date.now(),
-      text: input,
-      selected: false,
-      completed: false,
-    };
-
-    setTodos((prev) => [...prev, newTodo]);
-    setInput("");
-  };
-
-  const deleteTodo = (id: number) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
-
-  // update selected boolean field
-  const selectedTodo = (id: number) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id
-          ? {
-              ...todo,
-              selected: !todo.selected,
-            }
-          : todo
-      )
-    );
-  };
-
-  // update selected boolean field
-  const completedTodo = (id: number) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id
-          ? {
-              ...todo,
-              completed: !todo.completed,
-            }
-          : todo
-      )
-    );
-  };
-
-  const editTodo = (id: number, newText: string) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id
-          ? {
-              ...todo,
-              text: newText,
-            }
-          : todo
-      )
-    );
-  };
+  const {
+    input,
+    setInput,
+    todos,
+    addTodo,
+    deleteTodo,
+    selectedTodo,
+    completedTodo,
+    editTodo,
+  } = useTodoContext();
 
   return (
     <>
